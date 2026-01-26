@@ -1,0 +1,389 @@
+@if (visible()) {
+  <div #contextMenu class="context-menu" [style.top.px]="position.y" [style.left.px]="position.x">
+    <ng-template [ngTemplateOutlet]="menuTpl"></ng-template>
+  </div>
+}
+
+<ng-template #menuTpl>
+  <ul>
+    @for (item of items; track item.label) {
+      <li (click)="item.action?.()">
+        {{ item.label }}
+      </li>
+      @if (item.separator) {
+        <hr class="separator" />
+      }
+    }
+  </ul>
+</ng-template>
+
+<!-- Table Controls -->
+<div class="table-controls">
+  <div class="left-controls">
+    <!-- <button
+        label="Clear Filters"
+        icon="pi pi-filter-slash"
+        onKeyDown=""
+        (click)="clear(table)"
+        class="p-button-outlined"
+      >Clear Filters</button> -->
+    @if (isGroupedMode()) {
+      <button
+        label="Expand All"
+        icon="pi pi-plus"
+        onKeyDown=""
+        (click)="expandAll()"
+        class="button"
+      >
+        Expand All
+      </button>
+      <button
+        label="Collapse All"
+        icon="pi pi-minus"
+        onKeyDown=""
+        (click)="collapseAll()"
+        class="button"
+      >
+        Collapse All
+      </button>
+    }
+  </div>
+</div>
+
+@if (grouppedMode()) {
+  <table #grouppedTable class="custom-table">
+    <thead class="table-header">
+      <tr
+        class="header-row"
+        cdkDropList
+        cdkDropListOrientation="horizontal"
+        (cdkDropListDropped)="onColumnDrop($event)"
+      >
+        @for (column of columnsConfig(); track column.field) {
+          @if (column.visible !== false && !column.groupedBy) {
+            <th
+              class="header-cell"
+              cdkDrag
+              cdkDragHandle
+              [style.width.px]="column.width"
+              [style.min-width.px]="column.width"
+              style="cursor: move"
+              (click)="sort(column.sortedBy === 'asc' ? 'desc' : 'asc', column, $event)"
+              (contextmenu)="openContextMenu($event, column)"
+            >
+              <div class="flex items-center gap-2">
+                <span>{{ column.label }}</span>
+                @if (getSortIndex(column.field) === -1) {
+                  <svg
+                    class="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                    />
+                  </svg>
+                } @else {
+                  @if (getSortDirection(column.field) === 'asc') {
+                    <svg
+                      class="w-4 h-4 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 15l7-7 7 7"
+                      />
+                    </svg>
+                  } @else {
+                    <svg
+                      class="w-4 h-4 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  }
+                  @if (sortConfig().length > 1) {
+                    <span
+                      class="text-xs bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                    >
+                      {{ getSortIndex(column.field) + 1 }}
+                    </span>
+                  }
+                }
+                <!-- Resize Handle -->
+                <span
+                  class="resize-handle"
+                  style="height: 20px; width: 5px; cursor: col-resize; display: inline-block"
+                  (mousedown)="onResizeStart($event, column.field)"
+                ></span>
+              </div>
+            </th>
+          }
+        }
+      </tr>
+    </thead>
+    <tbody class="table-body">
+      <ng-container
+        *ngTemplateOutlet="groupTemplate; context: { groups: groupedData(), level: 0 }"
+      ></ng-container>
+    </tbody>
+  </table>
+
+  <!-- Recursive Group Template -->
+  <ng-template #groupTemplate let-groups="groups" let-level="level">
+    @for (group of groups; track group.path) {
+      <!-- Group Header Row -->
+      <tr class="group-header-row" [attr.data-level]="level">
+        <td [attr.colspan]="level" class="group-header-cell">
+          <div class="group-header-content" [style.padding-inline-start.rem]="level * 3">
+            <!-- Expand/Collapse Button -->
+            <button
+              onKeyDown=""
+              (click)="toggleGroup(group.path)"
+              class="p-button-text p-button-sm expand-button"
+            >
+              <i
+                class="pi"
+                [ngClass]="{
+                  'pi-chevron-down': group.expanded,
+                  'pi-chevron-right': !group.expanded,
+                }"
+              ></i>
+            </button>
+
+            <!-- Group Label -->
+            <div class="group-label" (click)="toggleGroup(group.path)">
+              <span class="group-field-name">{{ group.groupColumnLabel }}:</span>
+              <span class="group-value">{{
+                formatDisplayValue(group.groupValue, group.groupField)
+              }}</span>
+              <span class="group-count"
+                >({{
+                  isCustomerArray(group.items) ? group.items?.length : group.items?.length
+                }}
+                items)</span
+              >
+            </div>
+
+            <!-- Level Badge -->
+            <!-- <span class="level-badge">L{{ level + 1 }}</span> -->
+          </div>
+        </td>
+      </tr>
+
+      <!-- Expanded Content -->
+      @if (group.expanded) {
+        @if (isCustomerArray(group.items)) {
+          <!-- Leaf Level - Show Customer Rows -->
+          @for (customer of group.items; track customer.id) {
+            <tr class="data-row" [attr.data-level]="level + 1">
+              @for (column of getVisibleColumns(); track column.field) {
+                <td [style.padding-left.rem]="(level + 1) * 2">
+                  @if (column.field === 'country') {
+                    <div class="flex items-center gap-2">
+                      <img
+                        [src]="
+                          'https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png'
+                        "
+                        [class]="'flag flag-' + customer.country.code"
+                        style="width: 20px"
+                        alt=""
+                      />
+                      <span>{{ customer.country.name }}</span>
+                    </div>
+                  } @else if (column.field === 'representative') {
+                    <div class="flex items-center gap-2">
+                      <img
+                        [alt]="customer.representative.name"
+                        [src]="
+                          'https://primefaces.org/cdn/primeng/images/demo/avatar/' +
+                          customer.representative.image
+                        "
+                        width="32"
+                      />
+                      <span>{{ customer.representative.name }}</span>
+                    </div>
+                  } @else if (column.type === 'date') {
+                    {{ customer[column.field] | date: 'MM/dd/yyyy' }}
+                  } @else if (column.field === 'status') {
+                    <span class="status-tag" [class]="customer[column.field]">{{
+                      customer[column.field]
+                    }}</span>
+                    <!-- <p-tag [value]="customer.status" [severity]="getSeverity(customer.status)" /> -->
+                  } @else if (column.type === 'boolean') {
+                    <i
+                      class="pi"
+                      [ngClass]="{
+                        'text-green-500 pi-check-circle': customer.verified,
+                        'text-red-500 pi-times-circle': !customer.verified,
+                      }"
+                    ></i>
+                  } @else {
+                    {{ customer[column.field] }}
+                  }
+                </td>
+              }
+            </tr>
+          }
+        } @else {
+          <!-- Nested Groups - Recursive Call -->
+          <ng-container
+            *ngTemplateOutlet="groupTemplate; context: { groups: group.items, level: level + 1 }"
+          ></ng-container>
+        }
+      }
+    }
+  </ng-template>
+} @else {
+  <table #table class="custom-table">
+    <thead class="table-header">
+      <tr
+        class="header-row"
+        cdkDropList
+        cdkDropListOrientation="horizontal"
+        (cdkDropListDropped)="onColumnDrop($event)"
+      >
+        @for (column of columnsConfig(); track column.field) {
+          <th
+            class="header-cell"
+            cdkDrag
+            cdkDragHandle
+            [style.width.px]="column.width"
+            [style.min-width.px]="column.width"
+            style="cursor: move"
+            (click)="sort(column.sortedBy === 'asc' ? 'desc' : 'asc', column, $event)"
+            (contextmenu)="openContextMenu($event, column)"
+          >
+            <div class="flex items-center gap-2">
+              <span>{{ column.label }}</span>
+              @if (getSortIndex(column.field) === -1) {
+                <svg
+                  class="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                  />
+                </svg>
+              } @else {
+                @if (getSortDirection(column.field) === 'asc') {
+                  <svg
+                    class="w-4 h-4 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 15l7-7 7 7"
+                    />
+                  </svg>
+                } @else {
+                  <svg
+                    class="w-4 h-4 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                }
+                @if (sortConfig().length > 1) {
+                  <span
+                    class="text-xs bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                  >
+                    {{ getSortIndex(column.field) + 1 }}
+                  </span>
+                }
+              }
+              <!-- Resize Handle -->
+                <span
+                  class="resize-handle"
+                  style="height: 20px; width: 5px; cursor: col-resize; display: inline-block"
+                  (mousedown)="onResizeStart($event, column.field)"
+                ></span>
+            </div>
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody class="table-body">
+      @for (customer of sortedData() ?? customers(); track customer.id) {
+        <tr>
+          @for (column of columnsConfig(); track column.field) {
+            <td class="body-cell" [style.width.px]="column.width">
+              @if (column.field === 'country') {
+                <div class="flex items-center gap-2">
+                  <img
+                    [src]="
+                      'https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png'
+                    "
+                    [class]="'flag flag-' + customer.country?.code"
+                    style="width: 20px"
+                    alt=""
+                  />
+                  <span>{{ customer.country?.name }}</span>
+                </div>
+              } @else if (column.field === 'status') {
+                <span class="status-tag" [class]="customer[column.field]">{{
+                  customer[column.field]
+                }}</span>
+              } @else if (column.field === 'representative') {
+                <div class="flex items-center gap-2">
+                  <img
+                    [alt]="customer.representative?.name"
+                    [src]="
+                      'https://primefaces.org/cdn/primeng/images/demo/avatar/' +
+                      customer.representative?.image
+                    "
+                    width="32"
+                  />
+                  <span>{{ customer.representative?.name }}</span>
+                </div>
+              } @else if (column.type === 'date') {
+                {{ customer[column.field] | date: 'MM/dd/yyyy' }}
+              } @else if (column.type === 'boolean') {
+                <i
+                  class="pi"
+                  [ngClass]="{
+                    'text-green-500 pi-check-circle': customer.verified,
+                    'text-red-500 pi-times-circle': !customer.verified,
+                  }"
+                ></i>
+              } @else {
+                {{ customer[column.field] }}
+              }
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+}
