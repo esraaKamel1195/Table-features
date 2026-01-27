@@ -38,12 +38,13 @@
       <option value="5">5</option>
     </select> -->
     <p-multiselect
+      placeholder="Select Columns"
       [(ngModel)]="selectedColumns"
       [options]="columnsConfig()"
       optionLabel="label"
       [maxSelectedLabels]="0"
+      optionDisabled="disableVisiblity"
       class="w-full md:w-80 mx-2"
-      placeholder="Normal"
       (onChange)="onColumnVisiblityChange($event)"
     />
     <button

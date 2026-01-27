@@ -17,4 +17,6 @@ export interface ColumnsConfig {
   filter?: boolean; // Whether to include in filter builder
   visible?: boolean;
   groupedBy?: boolean;
+  disableVisiblity?: boolean;
+  rejectUnFixed?: boolean;
 }
