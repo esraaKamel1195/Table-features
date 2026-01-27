@@ -404,6 +404,7 @@ export class CustomTable implements OnInit {
   }
 
   hideColumn(column: ColumnsConfig): void {
+    this.visible.set(false);
     const updatedColumns = this.columnsConfig().map((col) =>
       col.field === column.field ? { ...col, visible: false } : col,
     );
@@ -496,10 +497,21 @@ export class CustomTable implements OnInit {
   private readonly onMouseEnd = (event: MouseEvent) => {
     this.resizing = false;
     this.currentColumn = null;
-    
+
     document.removeEventListener('mousemove', this.onMouseMove);
     document.removeEventListener('mouseup', this.onMouseEnd);
   };
+
+  clear() {
+    this.customers.set([...this.originalCustomers]);
+    this.sortConfig.set([]);
+    this.groupedColumns.set([]);
+    this.grouppedMode.set(false);
+    this.expandedGroups.set(new Set());
+    this.columnsConfig.update((cols) =>
+      cols.map((col) => ({ ...col, visible: true, groupedBy: false, sortedBy: undefined })),
+    );
+  }
 
   // close on outside click
   @HostListener('document:click', ['$event'])

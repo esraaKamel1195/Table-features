@@ -1,0 +1,5 @@
+Table Features:
+1 - Grouping single & multi grouping
+2 - Sorting single & multi sorting
+3 - Resizing
+4 - 
