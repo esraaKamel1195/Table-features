@@ -14,6 +14,8 @@ import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-
 import { CustomerService } from '../models/customerservice';
 import { Customer, Representative } from '../models/customer';
 import { ColumnsConfig, DataType } from '../models/ColumnsConfig';
+import { FormsModule } from '@angular/forms';
+import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect';
 
 interface ContextMenuItemsMenu {
   label?: string;
@@ -43,7 +45,7 @@ interface SortConfig {
 
 @Component({
   selector: 'app-custom-table',
-  imports: [CommonModule, DragDropModule],
+  imports: [CommonModule, DragDropModule, FormsModule, MultiSelectModule],
   templateUrl: './custom-table.html',
   styleUrl: './custom-table.css',
   providers: [CustomerService],
@@ -104,6 +106,8 @@ export class CustomTable implements OnInit {
   // Store expanded/collapsed state for each group path
   expandedGroups: WritableSignal<Set<string>> = signal(new Set());
 
+  selectedColumns: ColumnsConfig[] = [];
+
   // Computed grouped data based on groupedColumns
   groupedData: Signal<GroupedData[]> = computed(() => {
     const grouped = this.groupedColumns();
@@ -155,6 +159,7 @@ export class CustomTable implements OnInit {
       this.customers().forEach((customer) => (customer.date = new Date(<Date>customer.date)));
     });
 
+    this.selectedColumns = this.getVisibleColumns();
     this.representatives = [
       { name: 'Amy Elsner', image: 'amyelsner.png' },
       { name: 'Anna Fali', image: 'annafali.png' },
@@ -403,20 +408,6 @@ export class CustomTable implements OnInit {
     return sort ? sort.direction : null;
   }
 
-  hideColumn(column: ColumnsConfig): void {
-    this.visible.set(false);
-    const updatedColumns = this.columnsConfig().map((col) =>
-      col.field === column.field ? { ...col, visible: false } : col,
-    );
-    this.columnsConfig.set(updatedColumns);
-  }
-
-  getVisibleColumns(): ColumnsConfig[] {
-    return this.columnsConfig().filter(
-      (col) => col.visible !== false && !this.groupedColumns().includes(col.field),
-    );
-  }
-
   toggleGroup(path: string): void {
     const expanded = new Set(this.expandedGroups());
     if (expanded.has(path)) {
@@ -511,6 +502,32 @@ export class CustomTable implements OnInit {
     this.columnsConfig.update((cols) =>
       cols.map((col) => ({ ...col, visible: true, groupedBy: false, sortedBy: undefined })),
     );
+  }
+
+  hideColumn(column: ColumnsConfig): void {
+    this.visible.set(false);
+    const updatedColumns = this.columnsConfig().map((col) =>
+      col.field === column.field ? { ...col, visible: false } : col,
+    );
+    this.columnsConfig.set(updatedColumns);
+  }
+
+  getVisibleColumns(): ColumnsConfig[] {
+    return this.columnsConfig().filter(
+      (col) => col.visible !== false && !this.groupedColumns().includes(col.field),
+    );
+  }
+
+  onColumnVisiblityChange(event: MultiSelectChangeEvent | ColumnsConfig[]): void {
+    const selectedFields =
+      Array.isArray(event) && 'field' in event[0]
+        ? (event as ColumnsConfig[]).map((col) => col.field)
+        : (event as MultiSelectChangeEvent).value.map((col: ColumnsConfig) => col.field);
+    const updatedColumns = this.columnsConfig().map((col) => ({
+      ...col,
+      visible: selectedFields.includes(col.field),
+    }));
+    this.columnsConfig.set(updatedColumns);
   }
 
   // close on outside click

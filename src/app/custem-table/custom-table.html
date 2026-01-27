@@ -29,6 +29,23 @@
     >
       Clear Filters
     </button> -->
+    <!-- <select
+      name="rowsPerPage"
+      id="rowsPerPage"
+      (change)="onRowsPerPageChange($event)"
+      class="rows-per-page-select"
+    >
+      <option value="5">5</option>
+    </select> -->
+    <p-multiselect
+      [(ngModel)]="selectedColumns"
+      [options]="columnsConfig()"
+      optionLabel="label"
+      [maxSelectedLabels]="0"
+      class="w-full md:w-80 mx-2"
+      placeholder="Normal"
+      (onChange)="onColumnVisiblityChange($event)"
+    />
     <button
       label="Clear Filters"
       icon="pi pi-filter-slash"
