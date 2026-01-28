@@ -29,14 +29,6 @@
     >
       Clear Filters
     </button> -->
-    <!-- <select
-      name="rowsPerPage"
-      id="rowsPerPage"
-      (change)="onRowsPerPageChange($event)"
-      class="rows-per-page-select"
-    >
-      <option value="5">5</option>
-    </select> -->
     <p-multiselect
       placeholder="Select Columns"
       [(ngModel)]="selectedColumns"
@@ -44,6 +36,7 @@
       optionLabel="label"
       [maxSelectedLabels]="0"
       optionDisabled="disableVisiblity"
+      selectedItemsLabel="Toggle Columns Show/Hide"
       class="w-full md:w-80 mx-2"
       (onChange)="onColumnVisiblityChange($event)"
     />
@@ -88,6 +81,13 @@
         cdkDropListOrientation="horizontal"
         (cdkDropListDropped)="onColumnDrop($event)"
       >
+        <th>
+          <p-checkbox
+            [(ngModel)]="selectAll"
+            [binary]="true"
+            (onChange)="selectAllChange($event)"
+          />
+        </th>
         @for (column of columnsConfig(); track column.field) {
           @if (column.visible !== false && !column.groupedBy) {
             <th
@@ -222,6 +222,13 @@
           @for (customer of group.items; track customer.id) {
             <tr class="data-row" [attr.data-level]="level + 1">
               @for (column of getVisibleColumns(); track column.field) {
+                <td>
+                  <p-checkbox
+                    [(ngModel)]="customer.selected"
+                    [binary]="true"
+                    (onChange)="selectTableData($event, customer)"
+                  />
+                </td>
                 <td [style.padding-left.rem]="(level + 1) * 2">
                   @if (column.field === 'country') {
                     <div class="flex items-center gap-2">
@@ -287,6 +294,13 @@
         cdkDropListOrientation="horizontal"
         (cdkDropListDropped)="onColumnDrop($event)"
       >
+        <th>
+          <p-checkbox
+            [(ngModel)]="selectAll"
+            [binary]="true"
+            (onChange)="selectAllChange($event)"
+          />
+        </th>
         @for (column of columnsConfig(); track column.field) {
           @if (column.visible !== false) {
             <th
@@ -369,6 +383,15 @@
       @for (customer of sortedData() ?? customers(); track customer.id) {
         <tr>
           @for (column of columnsConfig(); track column.field) {
+            @if (column.field === 'id') {
+              <td>
+                <p-checkbox
+                  [(ngModel)]="customer.selected"
+                  [binary]="true"
+                  (onChange)="selectTableData($event, customer)"
+                />
+              </td>
+            }
             @if (column.visible !== false) {
               <td class="body-cell" [style.width.px]="column.width">
                 @if (column.field === 'country') {

@@ -2,4 +2,6 @@ Table Features:
 1 - Grouping single & multi grouping
 2 - Sorting single & multi sorting
 3 - Resizing
-4 - 
+4 - Hide/show Columns
+5 - Table selection
+6 - Fixed table columns (start - end - sticky)

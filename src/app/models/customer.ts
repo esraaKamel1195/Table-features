@@ -20,6 +20,7 @@ export interface Customer {
   verified?: boolean;
   balance?: number;
   [key: string]: any;  // Add this line
+  selected?: boolean;
 }
 
 export const customersData: Customer[] = [

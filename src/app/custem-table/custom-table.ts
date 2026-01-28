@@ -16,6 +16,7 @@ import { Customer, Representative } from '../models/customer';
 import { ColumnsConfig, DataType } from '../models/ColumnsConfig';
 import { FormsModule } from '@angular/forms';
 import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect';
+import { CheckboxModule } from 'primeng/checkbox';
 
 interface ContextMenuItemsMenu {
   label?: string;
@@ -45,7 +46,7 @@ interface SortConfig {
 
 @Component({
   selector: 'app-custom-table',
-  imports: [CommonModule, DragDropModule, FormsModule, MultiSelectModule],
+  imports: [CommonModule, DragDropModule, FormsModule, MultiSelectModule, CheckboxModule],
   templateUrl: './custom-table.html',
   styleUrl: './custom-table.css',
   providers: [CustomerService],
@@ -57,6 +58,7 @@ export class CustomTable implements OnInit {
   representatives!: Representative[];
   statuses!: any[];
   visible: WritableSignal<boolean> = signal(false);
+  selectAll: WritableSignal<boolean> = signal(false);
   position = {
     x: 0,
     y: 0,
@@ -70,6 +72,7 @@ export class CustomTable implements OnInit {
       label: 'Id',
       type: 'number',
       groupedBy: false,
+      selected: false,
       width: 70,
       visible: true,
       disableVisiblity: true,
@@ -600,6 +603,25 @@ export class CustomTable implements OnInit {
       visible: selectedFields.includes(col.field),
     }));
     this.columnsConfig.set(updatedColumns);
+  }
+
+  selectAllChange(event: any): void {
+    console.log('Select All Changed:', event);
+    const isSelected = event.checked;
+    const updatedColumns = this.columnsConfig().map((col) =>
+      col.field === 'id' ? { ...col, selected: isSelected } : col,
+    );
+    this.columnsConfig.set(updatedColumns);
+    const updatedCustomers = this.customers().map((cust) => ({ ...cust, selected: isSelected }));
+    this.customers.set(updatedCustomers);
+  }
+
+  selectTableData(event: any, customer: Customer): void {
+    const isSelected = event.checked;
+    const updatedCustomers = this.customers().map((cust) =>
+      cust.id === customer.id ? { ...cust, selected: isSelected } : cust,
+    );
+    this.customers.set(updatedCustomers);
   }
 
   // close on outside click

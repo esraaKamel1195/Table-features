@@ -16,6 +16,7 @@ export interface ColumnsConfig {
   dragable?: boolean;
   filter?: boolean; // Whether to include in filter builder
   visible?: boolean;
+  selected?: boolean;
   groupedBy?: boolean;
   disableVisiblity?: boolean;
   rejectUnFixed?: boolean;
