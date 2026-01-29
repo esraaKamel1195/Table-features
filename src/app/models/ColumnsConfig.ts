@@ -9,15 +9,15 @@ export interface ColumnsConfig {
   sortedBy?: 'asc' | 'desc';
   sortMode?: 'single' | 'multiple';
   sortOrder?: number;
-  fixed?: boolean;
   width?: number;
-  allowUnFix?: boolean;
   allowDrag?: boolean;
   dragable?: boolean;
   filter?: boolean; // Whether to include in filter builder
-  visible?: boolean;
   selected?: boolean;
   groupedBy?: boolean;
+  visible?: boolean;
   disableVisiblity?: boolean;
+  fixed?: 'left' | 'right' | null;
+  fixedOrder?: number;
   rejectUnFixed?: boolean;
 }

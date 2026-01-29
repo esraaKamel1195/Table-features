@@ -63,14 +63,21 @@
     height: 74vh;
     max-height: 74vh;
     margin-block-start: 2rem;
-    margin-inline-start: 2rem;
+    margin-inline-start: 10rem;
     margin-bottom: 3rem;
+    /* overflow: auto; */
+    .table {
+      width: 100%;
+      height: 100%;
+      max-height: 74vh;
+      max-width: 500px !important;
+    }
   }
 </style>
 
 <main class="main">
   <div class="content">
-    <app-custom-table></app-custom-table>
+    <app-custom-table class="table"></app-custom-table>
   </div>
 </main>
 

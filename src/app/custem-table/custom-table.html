@@ -301,7 +301,7 @@
             (onChange)="selectAllChange($event)"
           />
         </th>
-        @for (column of columnsConfig(); track column.field) {
+        <!-- @for (column of columnsConfig(); track column.field) {
           @if (column.visible !== false) {
             <th
               class="header-cell"
@@ -330,35 +330,13 @@
                     />
                   </svg>
                 } @else {
-                  @if (getSortDirection(column.field) === 'asc') {
-                    <svg
-                      class="w-4 h-4 text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 15l7-7 7 7"
-                      />
-                    </svg>
-                  } @else {
-                    <svg
-                      class="w-4 h-4 text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  }
+                  <i
+                    class="pi"
+                    [ngClass]="{
+                      'pi-arrow-down': getSortDirection(column.field) === 'asc',
+                      'pi-arrow-up': getSortDirection(column.field) === 'desc',
+                    }"
+                  ></i>
                   @if (sortConfig().length > 1) {
                     <span
                       class="text-xs bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center"
@@ -366,6 +344,181 @@
                       {{ getSortIndex(column.field) + 1 }}
                     </span>
                   }
+                }
+                <span
+                  class="resize-handle"
+                  style="height: 20px; width: 5px; cursor: col-resize; display: inline-block"
+                  (mousedown)="onResizeStart($event, column.field)"
+                ></span>
+              </div>
+            </th>
+          }
+        } -->
+
+        <!-- Left Pinned Columns -->
+        @for (column of leftFixedColumns(); track column.field; let i = $index) {
+          @if (column.visible !== false) {
+            <th
+              class="pinned-left"
+              cdkDrag
+              cdkDragHandle
+              [style.width.px]="column.width"
+              [style.min-width.px]="column.width"
+              [style.left]="getLeftOffset(i)"
+              [style.width]="column.width"
+              style="cursor: move"
+              (click)="sort(column.sortedBy === 'asc' ? 'desc' : 'asc', column, $event)"
+              (contextmenu)="openContextMenu($event, column)"
+            >
+              <div class="header-content flex items-center gap-2">
+                <span>{{ column.label }}</span>
+                @if (getSortIndex(column.field) === -1) {
+                  <svg
+                    class="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                    />
+                  </svg>
+                } @else {
+                  <i
+                    class="pi"
+                    [ngClass]="{
+                      'pi-arrow-down': getSortDirection(column.field) === 'asc',
+                      'pi-arrow-up': getSortDirection(column.field) === 'desc',
+                    }"
+                  ></i>
+                  @if (sortConfig().length > 1) {
+                    <span
+                      class="text-xs bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                    >
+                      {{ getSortIndex(column.field) + 1 }}
+                    </span>
+                  }
+                }
+                @if (column.fixed !== null || column.fixed !== undefined) {
+                  <button (click)="unFixColumn(column)" title="Unpin">📌</button>
+                }
+                <span
+                  class="resize-handle"
+                  style="height: 20px; width: 5px; cursor: col-resize; display: inline-block"
+                  (mousedown)="onResizeStart($event, column.field)"
+                ></span>
+              </div>
+            </th>
+          }
+        }
+
+        <!-- Scrollable Columns -->
+        @for (column of scrollableColumns(); track column.field) {
+          @if (column.visible !== false) {
+            <th
+              cdkDrag
+              cdkDragHandle
+              [style.width]="column.width"
+              [style.width.px]="column.width"
+              [style.min-width.px]="column.width"
+              style="cursor: move"
+              (click)="sort(column.sortedBy === 'asc' ? 'desc' : 'asc', column, $event)"
+              (contextmenu)="openContextMenu($event, column)"
+            >
+              <div class="header-content flex items-center gap-2">
+                <span>{{ column.label }}</span>
+                @if (getSortIndex(column.field) === -1) {
+                  <svg
+                    class="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                    />
+                  </svg>
+                } @else {
+                  <i
+                    class="pi"
+                    [ngClass]="{
+                      'pi-arrow-down': getSortDirection(column.field) === 'asc',
+                      'pi-arrow-up': getSortDirection(column.field) === 'desc',
+                    }"
+                  ></i>
+                  @if (sortConfig().length > 1) {
+                    <span
+                      class="text-xs bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                    >
+                      {{ getSortIndex(column.field) + 1 }}
+                    </span>
+                  }
+                }
+                <span
+                  class="resize-handle"
+                  style="height: 20px; width: 5px; cursor: col-resize; display: inline-block"
+                  (mousedown)="onResizeStart($event, column.field)"
+                ></span>
+              </div>
+            </th>
+          }
+        }
+
+        <!-- Right Pinned Columns -->
+        @for (column of rightFixedColumns(); track column.field; let i = $index) {
+          @if (column.visible !== false) {
+            <th
+              class="pinned-right"
+              cdkDrag
+              cdkDragHandle
+              [style.right]="getRightOffset(i)"
+              [style.width]="column.width"
+              [style.width.px]="column.width"
+              [style.min-width.px]="column.width"
+              style="cursor: move"
+              (click)="sort(column.sortedBy === 'asc' ? 'desc' : 'asc', column, $event)"
+              (contextmenu)="openContextMenu($event, column)"
+            >
+              <div class="header-content flex items-center gap-2">
+                <span>{{ column.label }}</span>
+                @if (getSortIndex(column.field) === -1) {
+                  <svg
+                    class="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                    />
+                  </svg>
+                } @else {
+                  <i
+                    class="pi"
+                    [ngClass]="{
+                      'pi-arrow-down': getSortDirection(column.field) === 'asc',
+                      'pi-arrow-up': getSortDirection(column.field) === 'desc',
+                    }"
+                  ></i>
+                  @if (sortConfig().length > 1) {
+                    <span
+                      class="text-xs bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                    >
+                      {{ getSortIndex(column.field) + 1 }}
+                    </span>
+                  }
+                }
+                @if (column.fixed !== null || column.fixed !== undefined) {
+                  <button (click)="unFixColumn(column)" title="Unpin">📌</button>
                 }
                 <!-- Resize Handle -->
                 <span
@@ -382,7 +535,7 @@
     <tbody class="table-body">
       @for (customer of sortedData() ?? customers(); track customer.id) {
         <tr>
-          @for (column of columnsConfig(); track column.field) {
+          <!-- @for (column of columnsConfig(); track column.field) {
             @if (column.field === 'id') {
               <td>
                 <p-checkbox
@@ -394,6 +547,166 @@
             }
             @if (column.visible !== false) {
               <td class="body-cell" [style.width.px]="column.width">
+                @if (column.field === 'country') {
+                  <div class="flex items-center gap-2">
+                    <img
+                      [src]="
+                        'https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png'
+                      "
+                      [class]="'flag flag-' + customer.country?.code"
+                      style="width: 20px"
+                      alt=""
+                    />
+                    <span>{{ customer.country?.name }}</span>
+                  </div>
+                } @else if (column.field === 'status') {
+                  <span class="status-tag" [class]="customer[column.field]">{{
+                    customer[column.field]
+                  }}</span>
+                } @else if (column.field === 'representative') {
+                  <div class="flex items-center gap-2">
+                    <img
+                      [alt]="customer.representative?.name"
+                      [src]="
+                        'https://primefaces.org/cdn/primeng/images/demo/avatar/' +
+                        customer.representative?.image
+                      "
+                      width="32"
+                    />
+                    <span>{{ customer.representative?.name }}</span>
+                  </div>
+                } @else if (column.type === 'date') {
+                  {{ customer[column.field] | date: 'MM/dd/yyyy' }}
+                } @else if (column.type === 'boolean') {
+                  <i
+                    class="pi"
+                    [ngClass]="{
+                      'text-green-500 pi-check-circle': customer.verified,
+                      'text-red-500 pi-times-circle': !customer.verified,
+                    }"
+                  ></i>
+                } @else {
+                  {{ customer[column.field] }}
+                }
+              </td>
+            }
+          } -->
+
+          <!-- Left Pinned Cells -->
+          @for (column of leftFixedColumns(); track column.field; let i = $index) {
+            @if (column.field === 'id') {
+              <td>
+                <p-checkbox
+                  [(ngModel)]="customer.selected"
+                  [binary]="true"
+                  (onChange)="selectTableData($event, customer)"
+                />
+              </td>
+            }
+            @if (column.visible !== false) {
+              <td class="pinned-left" [style.left]="getLeftOffset(i)" [style.width]="column.width">
+                @if (column.field === 'country') {
+                  <div class="flex items-center gap-2">
+                    <img
+                      [src]="
+                        'https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png'
+                      "
+                      [class]="'flag flag-' + customer.country?.code"
+                      style="width: 20px"
+                      alt=""
+                    />
+                    <span>{{ customer.country?.name }}</span>
+                  </div>
+                } @else if (column.field === 'status') {
+                  <span class="status-tag" [class]="customer[column.field]">{{
+                    customer[column.field]
+                  }}</span>
+                } @else if (column.field === 'representative') {
+                  <div class="flex items-center gap-2">
+                    <img
+                      [alt]="customer.representative?.name"
+                      [src]="
+                        'https://primefaces.org/cdn/primeng/images/demo/avatar/' +
+                        customer.representative?.image
+                      "
+                      width="32"
+                    />
+                    <span>{{ customer.representative?.name }}</span>
+                  </div>
+                } @else if (column.type === 'date') {
+                  {{ customer[column.field] | date: 'MM/dd/yyyy' }}
+                } @else if (column.type === 'boolean') {
+                  <i
+                    class="pi"
+                    [ngClass]="{
+                      'text-green-500 pi-check-circle': customer.verified,
+                      'text-red-500 pi-times-circle': !customer.verified,
+                    }"
+                  ></i>
+                } @else {
+                  {{ customer[column.field] }}
+                }
+              </td>
+            }
+          }
+
+          <!-- Scrollable Cells -->
+          @for (column of scrollableColumns(); track column.field) {
+            @if (column.visible !== false) {
+              <td [style.width]="column.width">
+                @if (column.field === 'country') {
+                  <div class="flex items-center gap-2">
+                    <img
+                      [src]="
+                        'https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png'
+                      "
+                      [class]="'flag flag-' + customer.country?.code"
+                      style="width: 20px"
+                      alt=""
+                    />
+                    <span>{{ customer.country?.name }}</span>
+                  </div>
+                } @else if (column.field === 'status') {
+                  <span class="status-tag" [class]="customer[column.field]">{{
+                    customer[column.field]
+                  }}</span>
+                } @else if (column.field === 'representative') {
+                  <div class="flex items-center gap-2">
+                    <img
+                      [alt]="customer.representative?.name"
+                      [src]="
+                        'https://primefaces.org/cdn/primeng/images/demo/avatar/' +
+                        customer.representative?.image
+                      "
+                      width="32"
+                    />
+                    <span>{{ customer.representative?.name }}</span>
+                  </div>
+                } @else if (column.type === 'date') {
+                  {{ customer[column.field] | date: 'MM/dd/yyyy' }}
+                } @else if (column.type === 'boolean') {
+                  <i
+                    class="pi"
+                    [ngClass]="{
+                      'text-green-500 pi-check-circle': customer.verified,
+                      'text-red-500 pi-times-circle': !customer.verified,
+                    }"
+                  ></i>
+                } @else {
+                  {{ customer[column.field] }}
+                }
+              </td>
+            }
+          }
+
+          <!-- Right Pinned Cells -->
+          @for (column of rightFixedColumns(); track column.field; let i = $index) {
+            @if (column.visible !== false) {
+              <td
+                class="pinned-right"
+                [style.right]="getRightOffset(i)"
+                [style.width]="column.width"
+              >
                 @if (column.field === 'country') {
                   <div class="flex items-center gap-2">
                     <img

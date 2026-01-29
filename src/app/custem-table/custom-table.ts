@@ -75,6 +75,7 @@ export class CustomTable implements OnInit {
       selected: false,
       width: 70,
       visible: true,
+      fixed: 'left',
       disableVisiblity: true,
       rejectUnFixed: true,
     },
@@ -218,6 +219,20 @@ export class CustomTable implements OnInit {
     });
   });
 
+  leftFixedColumns = computed(() =>
+    this.columnsConfig()
+      .filter((col) => col.fixed === 'left')
+      .sort((a, b) => (a.fixedOrder || 0) - (b.fixedOrder || 0)),
+  );
+
+  rightFixedColumns = computed(() =>
+    this.columnsConfig()
+      .filter((col) => col.fixed === 'right')
+      .sort((a, b) => (a.fixedOrder || 0) - (b.fixedOrder || 0)),
+  );
+
+  scrollableColumns = computed(() => this.columnsConfig().filter((col) => !col.fixed));
+
   private resizing = false;
   private startX = 0;
   private startWidth = 0;
@@ -298,6 +313,27 @@ export class CustomTable implements OnInit {
         label: 'Sort Descending',
         icon: 'pi pi-sort-amount-down',
         action: () => this.sort('desc', column, event),
+      },
+      { separator: true },
+      {
+        label: 'Fix this column left',
+        icon: 'pi pi-arrow-left',
+        action: () => this.fixColumns(column, 'left'),
+      },
+      {
+        label: 'Fix this column right',
+        icon: 'pi pi-arrow-right',
+        action: () => this.fixColumns(column, 'right'),
+      },
+      {
+        label: 'Unfix this column',
+        icon: 'pi pi-thumbtack',
+        action: () => this.unFixColumn(column),
+      },
+      {
+        label: 'Unfix all columns',
+        icon: 'pi pi-thumbtack',
+        action: () => this.unFixAllColumns(),
       },
       { separator: true },
       {
@@ -606,7 +642,6 @@ export class CustomTable implements OnInit {
   }
 
   selectAllChange(event: any): void {
-    console.log('Select All Changed:', event);
     const isSelected = event.checked;
     const updatedColumns = this.columnsConfig().map((col) =>
       col.field === 'id' ? { ...col, selected: isSelected } : col,
@@ -622,6 +657,60 @@ export class CustomTable implements OnInit {
       cust.id === customer.id ? { ...cust, selected: isSelected } : cust,
     );
     this.customers.set(updatedCustomers);
+  }
+
+  fixColumns(column: ColumnsConfig, position: 'left' | 'right' | null): void {
+    this.visible.set(false);
+    this.columnsConfig.update((cols) => {
+      if (position === null) {
+        return cols.map((col) =>
+          col.field === column.field ? { ...col, fixed: null, fixedOrder: undefined } : col,
+        );
+      }
+
+      const fixedCols = cols.filter((col) => col.fixed === position);
+      const fixedOrder = fixedCols.length;
+
+      return cols.map((col) =>
+        col.field === column.field ? { ...col, fixed: position, fixedOrder: fixedOrder } : col,
+      );
+    });
+  }
+
+  unFixColumn(column: ColumnsConfig): void {
+    this.visible.set(false);
+    const updatedColumns = this.columnsConfig().map((col) =>
+      col.field === column.field ? { ...col, fixed: null, fixedOrder: undefined } : col,
+    );
+    this.columnsConfig.set(updatedColumns);
+  }
+
+  unFixAllColumns(): void {
+    this.visible.set(false);
+    const updatedColumns = this.columnsConfig().map((col) => ({
+      ...col,
+      fixed: null,
+      fixedOrder: undefined,
+    }));
+    this.columnsConfig.set(updatedColumns);
+  }
+
+  getLeftOffset(columnIndex: number): string {
+    let offset = 0;
+    const leftCols = this.leftFixedColumns();
+    for (let i = 0; i < columnIndex && i < leftCols.length; i++) {
+      offset += leftCols[i].width || 100;
+    }
+    return `${offset}px`;
+  }
+
+  getRightOffset(columnIndex: number): string {
+    let offset = 0;
+    const rightCols = this.rightFixedColumns();
+    for (let i = rightCols.length - 1; i > columnIndex; i--) {
+      offset += rightCols[i].width || 100;
+    }
+    return `${offset}px`;
   }
 
   // close on outside click
