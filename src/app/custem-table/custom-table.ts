@@ -86,6 +86,7 @@ export class CustomTable implements OnInit {
       groupedBy: false,
       width: 150,
       visible: true,
+      fixed: 'left',
       disableVisiblity: true,
       rejectUnFixed: true,
     },
@@ -687,11 +688,15 @@ export class CustomTable implements OnInit {
 
   unFixAllColumns(): void {
     this.visible.set(false);
-    const updatedColumns = this.columnsConfig().map((col) => ({
-      ...col,
-      fixed: null,
-      fixedOrder: undefined,
-    }));
+    const updatedColumns = this.columnsConfig().map((col) =>
+      col.rejectUnFixed
+        ? col
+        : {
+            ...col,
+            fixed: null,
+            fixedOrder: undefined,
+          },
+    );
     this.columnsConfig.set(updatedColumns);
   }
 
